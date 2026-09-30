@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>新規登録 - メモトピア</title>
+        <link rel="stylesheet" href="sign.css">
+    </head>
+    <body>
+        <div class="all">
+        <div class="login">
+            <img src="ghost.png" id="ghost">
+            <h1>アカウント新規登録</h1>
+            <label for="mail">メールアドレス: </label>
+            <input type="email" id="mail" placeholder="(例: test@example.com)"><br>
+
+            <label for="pass">パスワード: </label>
+            <input type="password" id="pass" placeholder="パスワード"><br>
+            
+            <label for="pass">プレイヤー名: </label>
+            <input type="text" id="name" placeholder="プレイヤー名"><br>
+            
+            <input type="submit" value="確定" id="mit">
+            <p>アカウントを持っている場合は: </p>
+            <a href="login.html">ログイン</a>
+        </div>
+        </div>
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <script>
+            const SUPABASE_URL = "https://cwvcpbgjxbyroqnsdctf.supabase.co"; 
+const SUPABASE_KEY = "sb_publishable_WTjtS8YZ2P4HYtUibp3l0Q_-LwJ5GJp";
+const client = window.supabase.createClient( SUPABASE_URL, SUPABASE_KEY );
+            
+            const mailInput = document.getElementById("mail");
+            const passInput = document.getElementById("pass");
+            const mit = document.getElementById("mit");
+            const nameInput = document.getElementById("name");
+
+            mit.addEventListener("click", async () => {
+                const mail = mailInput.value;
+                const pass = passInput.value;
+                const name = nameInput.value;
+
+                if (mail == "" || pass == "" || name == "" ) {
+                    return alert("メールアドレスとパスワード、プレイヤー名を入力してください。");
+                }
+
+                const { data, error } = await client.auth.signUp({
+                     email: mail,
+                     password: pass,
+                     options: {
+                     emailRedirectTo: 'https://ouroborosia.com/slot'
+    }
+});
+                if (error) {
+                    return alert(error.message);
+                }
+
+                const { error: insertError } = await client
+    .from("users_info")
+    .insert({
+        uuid: data.user.id,
+        name: name
+    });
+
+if (insertError) {
+    return alert(insertError.message);
+}
+
+                alert("アカウント作成に成功しました！supabaseからの確認メールを送信したので、ご確認ください。");
+            });
+        </script>
+    </body>
+</html>

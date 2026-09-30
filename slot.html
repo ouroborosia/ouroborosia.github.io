@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ミタマースロット</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="pochi.css">
+<style>
+  :root{
+    --ink: #efe7d8;
+    --ink-dim: #b9ad96;
+    --night: #14152b;
+    --night-deep: #0c0d1c;
+    --panel: #1e2040;
+    --panel-line: #34365f;
+    --gold: #e8b64d;
+    --gold-deep: #b8842a;
+    --ember: #e0603f;
+    --die-face: #fbf6ea;
+    --die-pip: #26243a;
+    --radius: 14px;
+  }
+  *{ box-sizing: border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    min-height:100vh;
+    background:
+      radial-gradient(ellipse 900px 500px at 50% -10%, #2a2c56 0%, transparent 60%),
+      var(--night-deep);
+    color:var(--ink);
+    font-family:'Zen Maru Gothic', sans-serif;
+    display:flex;
+    justify-content:center;
+    padding:40px 18px 80px;
+  }
+  .stage{
+    width:100%;
+    max-width:640px;
+  }
+  .crown{
+    text-align:center;
+    margin-bottom:28px;
+  }
+  .crown .eyebrow{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:13px;
+    letter-spacing:0.04em;
+    color:var(--gold);
+    margin:0 0 6px;
+  }
+  .crown h1{
+    font-size:clamp(28px, 6vw, 40px);
+    font-weight:900;
+    margin:0;
+    line-height:1.25;
+    background:linear-gradient(180deg, #fdeec3, var(--gold) 65%, var(--gold-deep));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+  .crown p{
+    margin:10px auto 0;
+    max-width:440px;
+    font-size:14px;
+    color:var(--ink-dim);
+    line-height:1.8;
+  }
+
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--panel-line);
+    border-radius:var(--radius);
+    padding:26px 24px;
+    margin-bottom:20px;
+  }
+
+  .input-row{
+    display:flex;
+    align-items:flex-end;
+    gap:14px;
+    flex-wrap:wrap;
+  }
+  .field{ flex:1; min-width:180px; }
+  .field label{
+    display:block;
+    font-size:13px;
+    color:var(--ink-dim);
+    margin-bottom:8px;
+  }
+  .field input{
+    width:100%;
+    background:var(--night);
+    border:1px solid var(--panel-line);
+    border-radius:10px;
+    color:var(--ink);
+    font-family:'Space Grotesk', sans-serif;
+    font-size:22px;
+    font-weight:600;
+    padding:12px 14px;
+  }
+  .field input:focus{
+    outline:none;
+    border-color:var(--gold-deep);
+  }
+
+  .roll-count{
+    text-align:center;
+    padding:16px 0 4px;
+  }
+  .roll-count .num{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:52px;
+    font-weight:700;
+    color:var(--gold);
+    line-height:1;
+    transition:color 0.2s ease;
+  }
+  .roll-count .num.used-up{
+    color:var(--ink-dim);
+  }
+  .roll-count .label{
+    font-size:13px;
+    color:var(--ink-dim);
+    margin-top:4px;
+  }
+  .roll-count .note{
+    font-size:12px;
+    color:var(--ink-dim);
+    opacity:0.75;
+    margin-top:10px;
+  }
+
+  .spin-btn{
+    width:100%;
+    margin-top:18px;
+    padding:16px;
+    border:none;
+    border-radius:10px;
+    background:linear-gradient(180deg, var(--ember), #b8442a);
+    color:#fff2ea;
+    font-family:'Zen Maru Gothic', sans-serif;
+    font-size:17px;
+    font-weight:700;
+    letter-spacing:0.02em;
+    cursor:pointer;
+    box-shadow:0 6px 0 #8a301e, 0 8px 18px rgba(0,0,0,0.35);
+    transition:transform 0.08s ease, box-shadow 0.08s ease;
+  }
+  .spin-btn:active:not(:disabled){
+    transform:translateY(4px);
+    box-shadow:0 2px 0 #8a301e, 0 4px 10px rgba(0,0,0,0.35);
+  }
+  .spin-btn:disabled{
+    opacity:0.4;
+    cursor:not-allowed;
+    box-shadow:none;
+  }
+  .spin-btn .sub{
+    display:block;
+    font-family:'Space Grotesk', sans-serif;
+    font-size:12px;
+    font-weight:500;
+    opacity:0.85;
+    margin-top:3px;
+  }
+
+  .summary{
+    display:none;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+    margin-top:20px;
+  }
+  .summary.show{ display:grid; }
+  .stat{
+    background:var(--night);
+    border:1px solid var(--panel-line);
+    border-radius:10px;
+    padding:16px;
+    text-align:center;
+  }
+  .stat .v{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:26px;
+    font-weight:700;
+  }
+  .stat .v.gold{ color:var(--gold); }
+  .stat .k{
+    font-size:12px;
+    color:var(--ink-dim);
+    margin-top:4px;
+  }
+
+  .results{
+    display:none;
+    flex-direction:column;
+    gap:10px;
+  }
+  .results.show{ display:flex; }
+  .results h2{
+    font-size:14px;
+    color:var(--ink-dim);
+    font-weight:500;
+    margin:2px 2px 4px;
+  }
+
+  .roll-row{
+    display:flex;
+    align-items:center;
+    gap:16px;
+    background:var(--panel);
+    border:1px solid var(--panel-line);
+    border-radius:12px;
+    padding:14px 18px;
+    animation:rise 0.3s ease both;
+  }
+  .roll-row.hit{
+    border-color:var(--gold-deep);
+    background:linear-gradient(90deg, rgba(232,182,77,0.12), rgba(232,182,77,0.02));
+  }
+  .roll-row.big-hit{
+    border-color:var(--ember);
+    background:linear-gradient(90deg, rgba(224,96,63,0.18), rgba(224,96,63,0.03));
+  }
+  @keyframes rise{
+    from{ opacity:0; transform:translateY(8px) scale(0.98); }
+    to{ opacity:1; transform:translateY(0) scale(1); }
+  }
+
+  .roll-index{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:13px;
+    color:var(--ink-dim);
+    width:28px;
+    flex-shrink:0;
+  }
+
+  .dice-set{
+    display:flex;
+    gap:8px;
+    flex-shrink:0;
+  }
+  .die{
+    width:44px;
+    height:44px;
+    border-radius:9px;
+    background:var(--die-face);
+    border:1px solid rgba(0,0,0,0.15);
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    grid-template-rows:repeat(3, 1fr);
+    padding:7px;
+  }
+  .die.match{
+    background:var(--gold);
+  }
+  .die.match .pip.on{
+    background:#4a3210;
+  }
+  .roll-row.big-hit .die.match{
+    background:var(--ember);
+  }
+  .roll-row.big-hit .die.match .pip.on{
+    background:#4a1a0d;
+  }
+  .pip{
+    width:6px;
+    height:6px;
+    border-radius:50%;
+    justify-self:center;
+    align-self:center;
+  }
+  .pip.on{ background:var(--die-pip); }
+
+  .roll-yield{
+    margin-left:auto;
+    text-align:right;
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:700;
+    font-size:17px;
+    color:var(--ink-dim);
+    white-space:nowrap;
+  }
+  .roll-row.hit .roll-yield{ color:var(--gold); }
+  .roll-row.big-hit .roll-yield{ color:var(--ember); }
+
+  #captureArea{
+    background:transparent;
+  }
+  #captureArea.capturing{
+    padding:22px 20px;
+    background:var(--night-deep);
+    border-radius:var(--radius);
+  }
+  #captureArea.capturing *{
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .capture-title{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:13px;
+    font-weight:600;
+    letter-spacing:0.02em;
+    color:var(--gold);
+    margin-bottom:14px;
+  }
+
+  .save-btn{
+    display:none;
+    width:100%;
+    margin-top:14px;
+    padding:14px;
+    border:1px solid var(--panel-line);
+    border-radius:10px;
+    background:var(--panel);
+    color:var(--ink);
+    font-family:'Zen Maru Gothic', sans-serif;
+    font-size:15px;
+    font-weight:700;
+    cursor:pointer;
+    transition:border-color 0.15s ease, background 0.15s ease;
+  }
+  .save-btn:hover{
+    border-color:var(--gold-deep);
+    background:var(--night);
+  }
+
+  .empty-note{
+    text-align:center;
+    color:var(--ink-dim);
+    font-size:13px;
+    padding:30px 10px;
+  }
+
+  .footer-note{
+    text-align:center;
+    font-size:12px;
+    color:var(--ink-dim);
+    opacity:0.7;
+    margin-top:26px;
+    line-height:1.7;
+  }
+</style>
+</head>
+<body>
+     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<div class="stage">
+
+  <div class="crown">
+    <h1>ミタマースロット</h1>
+    <p>週間貢献度を入力すると、振れる回数を自動計算。/dice3 の出目によってマーをゲット — 最大666マー！</p>
+  </div>
+
+  <div class="panel">
+    <div class="input-row">
+      <div class="field">
+        <label for="contribution">週間貢献度</label>
+        <input type="number" id="contribution" min="0" step="1" placeholder="例: 130" inputmode="numeric">
+      </div>
+    </div>
+
+    <div class="roll-count">
+      <div class="num" id="rollCountDisplay">—</div>
+      <div class="label" id="rollCountLabel">振れる回数</div>
+      <div class="note" id="rollCountNote">貢献度を入力してね</div>
+    </div>
+
+    <button class="spin-btn" id="spinBtn" disabled>
+      1回振る
+      <span class="sub" id="spinBtnSub"></span>
+    </button>
+  </div>
+
+  <div id="captureArea">
+    <div class="capture-title" id="captureTitle" style="display:none;">ミタマースロット 結果</div>
+
+    <div class="summary" id="summary">
+      <div class="stat">
+        <div class="v" id="totalRolls">0</div>
+        <div class="k">振った回数</div>
+      </div>
+      <div class="stat">
+        <div class="v gold" id="totalMar">0</div>
+        <div class="k">合計マー</div>
+      </div>
+    </div>
+
+    <div class="results" id="results">
+      <h2>振った結果</h2>
+      <div id="resultList"></div>
+    </div>
+  </div>
+
+  <div class="empty-note" id="emptyNote" style="display:none;">まだ結果はありません。1回振ってみよう。</div>
+
+  <button class="save-btn" id="saveBtn" style="display:none;">結果を画像で保存</button>
+
+  <p class="footer-note">結果と合計マーを、国王に代引きで送ってね。</p>
+    <div class="logout">ログアウト</div>
+</div>
+    
+
+<script>
+
+    const SUPABASE_URL = "https://cwvcpbgjxbyroqnsdctf.supabase.co"; 
+const SUPABASE_KEY = "sb_publishable_WTjtS8YZ2P4HYtUibp3l0Q_-LwJ5GJp";
+const client = window.supabase.createClient( SUPABASE_URL, SUPABASE_KEY );
+    
+  const contributionInput = document.getElementById('contribution');
+  const rollCountDisplay = document.getElementById('rollCountDisplay');
+  const rollCountLabel = document.getElementById('rollCountLabel');
+  const rollCountNote = document.getElementById('rollCountNote');
+  const spinBtn = document.getElementById('spinBtn');
+  const spinBtnSub = document.getElementById('spinBtnSub');
+  const summary = document.getElementById('summary');
+  const totalRollsEl = document.getElementById('totalRolls');
+  const totalMarEl = document.getElementById('totalMar');
+  const resultsWrap = document.getElementById('results');
+  const resultList = document.getElementById('resultList');
+  const emptyNote = document.getElementById('emptyNote');
+  const captureArea = document.getElementById('captureArea');
+  const captureTitle = document.getElementById('captureTitle');
+  const saveBtn = document.getElementById('saveBtn');
+
+  let allowedRolls = 0;
+  let remainingRolls = 0;
+  let rollsSoFar = 0;
+  let marSoFar = 0;
+
+  function computeRolls(contribution){
+    if (isNaN(contribution) || contribution < 0) return 0;
+    if (contribution < 50) return 1; // 50未満は最低1回保証
+    return Math.floor(contribution / 50);
+  }
+
+  function refreshSpinButton(){
+    if (remainingRolls > 0){
+      spinBtn.disabled = false;
+      spinBtnSub.textContent = `残り ${remainingRolls}回`;
+      rollCountDisplay.classList.remove('used-up');
+      rollCountDisplay.textContent = remainingRolls;
+    } else {
+      spinBtn.disabled = true;
+      spinBtnSub.textContent = allowedRolls > 0 ? '振れる回数を使い切ったよ' : '';
+      if (allowedRolls > 0){
+        rollCountDisplay.classList.add('used-up');
+        rollCountDisplay.textContent = 0;
+      }
+    }
+  }
+
+  function updateRollCount(){
+    const val = parseInt(contributionInput.value, 10);
+    allowedRolls = computeRolls(val);
+    remainingRolls = allowedRolls;
+    rollsSoFar = 0;
+    marSoFar = 0;
+
+    resultList.innerHTML = '';
+    summary.classList.remove('show');
+    resultsWrap.classList.remove('show');
+    rollCountDisplay.classList.remove('used-up');
+    saveBtn.style.display = 'none';
+
+    if (contributionInput.value === '' ) {
+      rollCountDisplay.textContent = '—';
+      rollCountLabel.textContent = '振れる回数';
+      rollCountNote.textContent = '貢献度を入力してね';
+      spinBtn.disabled = true;
+      spinBtnSub.textContent = '';
+      emptyNote.style.display = 'none';
+      return;
+    }
+
+    rollCountLabel.textContent = '残り 振れる回数';
+    if (val < 50) {
+      rollCountNote.textContent = '貢献度50未満のため、最低保証の1回';
+    } else {
+      rollCountNote.textContent = `貢献度 ${val} ÷ 50 = ${allowedRolls}回`;
+    }
+    emptyNote.style.display = allowedRolls > 0 ? 'block' : 'none';
+    refreshSpinButton();
+  }
+
+  
+
+
+  function evaluateRoll(dice){
+    const [a, b, c] = dice;
+    if (a === b && b === c){
+      return { kind: 'triple', value: a, mar: a * 111 };
+    }
+    const counts = {};
+    [a, b, c].forEach(d => counts[d] = (counts[d] || 0) + 1);
+    const pairValue = Object.keys(counts).find(k => counts[k] === 2);
+    if (pairValue){
+      const v = parseInt(pairValue, 10);
+      return { kind: 'pair', value: v, mar: v * 11 };
+    }
+    return { kind: 'none', value: null, mar: 0 };
+  }
+
+  function pipPattern(n){
+    const patterns = {
+      1: [5],
+      2: [1, 9],
+      3: [1, 5, 9],
+      4: [1, 3, 7, 9],
+      5: [1, 3, 5, 7, 9],
+      6: [1, 3, 4, 6, 7, 9]
+    };
+    return patterns[n] || [];
+  }
+
+  function renderDie(n, isMatch){
+    const on = pipPattern(n);
+    let cells = '';
+    for (let i = 1; i <= 9; i++){
+      cells += `<div class="pip ${on.includes(i) ? 'on' : ''}"></div>`;
+    }
+    return `<div class="die ${isMatch ? 'match' : ''}">${cells}</div>`;
+  }
+
+  async function rollOnce() {
+  if (remainingRolls <= 0) return;
+
+  spinBtn.disabled = true;
+
+  try {
+    const { data, error } = await client.functions.invoke("slot", {
+      body: {
+        contribution: Number(contributionInput.value)
+      }
+    });
+
+    if (error) {
+      let message = "エラーが発生しました。";
+
+      try {
+        if (error.context) {
+          const body = await error.context.json();
+
+          if (body?.error) {
+            message = body.error;
+          }
+        }
+      } catch (_) {}
+
+      alert(message);
+      return;
+    }
+
+    if (!data || !data.success) {
+      alert(data?.error || "スロットに失敗しました。");
+      return;
+    }
+
+    // -----------------------------
+    // サーバーから結果を受け取る
+    // -----------------------------
+
+    const dice = data.dice;
+    const mar = data.result;
+
+    // サーバー側の残り回数を採用
+    remainingRolls = data.remainingRolls;
+
+    rollsSoFar = data.usedRolls;
+
+    marSoFar += mar;
+
+    // -----------------------------
+    // 当たり判定
+    // -----------------------------
+
+    let kind = "none";
+    let value = null;
+
+    const [a, b, c] = dice;
+
+    if (a === b && b === c) {
+      kind = "triple";
+      value = a;
+    }
+
+    else if (a === b) {
+      kind = "pair";
+      value = a;
+    }
+
+    else if (a === c) {
+      kind = "pair";
+      value = a;
+    }
+
+    else if (b === c) {
+      kind = "pair";
+      value = b;
+    }
+
+    // -----------------------------
+    // 結果表示
+    // -----------------------------
+
+    const rowClass =
+      kind === "triple"
+        ? " big-hit"
+        : kind === "pair"
+          ? " hit"
+          : "";
+
+    const row = document.createElement("div");
+
+    row.className =
+      "roll-row" + rowClass;
+
+    const isMatch = (d) =>
+      kind !== "none" && d === value;
+
+    const diceHtml = dice
+      .map(d => renderDie(d, isMatch(d)))
+      .join("");
+
+    const yieldText =
+      mar > 0
+        ? `+${mar}マー`
+        : "0マー";
+
+    row.innerHTML = `
+      <div class="roll-index">
+        #${rollsSoFar}
+      </div>
+
+      <div class="dice-set">
+        ${diceHtml}
+      </div>
+
+      <div class="roll-yield">
+        ${yieldText}
+      </div>
+    `;
+
+    resultList.insertBefore(
+      row,
+      resultList.firstChild
+    );
+
+    // -----------------------------
+    // 集計表示
+    // -----------------------------
+
+    totalRollsEl.textContent =
+      rollsSoFar;
+
+    totalMarEl.textContent =
+      marSoFar;
+
+    summary.classList.add("show");
+
+    resultsWrap.classList.add("show");
+
+    emptyNote.style.display =
+      "none";
+
+    saveBtn.style.display =
+      "block";
+
+    refreshSpinButton();
+
+  } catch (error) {
+
+    console.error(error);
+
+    alert(
+      "通信中にエラーが発生しました。"
+    );
+
+  } finally {
+
+    refreshSpinButton();
+
+  }
+}
+  function saveAsImage(){
+    if (typeof html2canvas === 'undefined'){
+      alert('画像保存の準備ができていません。オンライン状態で開き直してみてね。');
+      return;
+    }
+
+    captureTitle.style.display = 'block';
+    captureArea.classList.add('capturing');
+
+    // アニメーション解除のスタイルを確実に反映させてから撮影する
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        html2canvas(captureArea, {
+          backgroundColor: '#0c0d1c',
+          scale: 2
+        }).then(canvas => {
+          captureTitle.style.display = 'none';
+          captureArea.classList.remove('capturing');
+
+          const link = document.createElement('a');
+          const now = new Date();
+          const stamp = now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0')
+            + '_' + String(now.getHours()).padStart(2, '0') + String(now.getMinutes()).padStart(2, '0');
+          link.download = `mitamaslot_result_${stamp}.png`;
+          link.href = canvas.toDataURL('image/png');
+          link.click();
+        }).catch(() => {
+          captureTitle.style.display = 'none';
+          captureArea.classList.remove('capturing');
+          alert('画像の保存に失敗しました。もう一度試してみてね。');
+        });
+      });
+    });
+  }
+
+  contributionInput.addEventListener('input', updateRollCount);
+  spinBtn.addEventListener('click', rollOnce);
+  saveBtn.addEventListener('click', saveAsImage);
+
+  updateRollCount();
+</script>
+    <script src="pochi.js"></script>
+
+</body>
+</html>

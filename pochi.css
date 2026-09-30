@@ -1,0 +1,14 @@
+
+.logout {
+    border: 1px solid lightgray;
+    border-radius: 10px;
+    width: 115px;
+    height: auto;
+    diplay: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 15px;
+    cursor: pointer;
+    background-color: white;
+    color: black;
+}
