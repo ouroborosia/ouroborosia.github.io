@@ -45,6 +45,8 @@ const client = window.supabase.createClient( SUPABASE_URL, SUPABASE_KEY );
                     return alert("メールアドレスとパスワード、プレイヤー名を入力してください。");
                 }
 
+                console.log("REDIRECT:", "https://ouroborosia.github.io/slot.html");
+
                 const { data, error } = await client.auth.signUp({
                      email: mail,
                      password: pass,
