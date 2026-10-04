@@ -55,8 +55,13 @@ const client = window.supabase.createClient( SUPABASE_URL, SUPABASE_KEY );
     }
 });
                 if (error) {
-                    return alert(error.message);
-                }
+    console.log(error);
+    console.log("message:", error.message);
+    console.log("code:", error.code);
+    console.log("status:", error.status);
+    alert(error.message);
+    return;
+}
 
                 const { error: insertError } = await client
     .from("users_info")
